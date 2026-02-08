@@ -1,0 +1,155 @@
+import random
+import math
+matrices = []
+# KEY: comments surrounded by *** designate a function
+# ***return the desired special matrix***
+def special_matrices(special_matrix):
+    identity_2x2 = [[1,0], [0,1]]
+    clockwise90_2x2 = [[0,1], [-1,0]]
+    anticlockwise90_2x2 = [[0,-1], [1,0]]
+    rotate180_2x2 = [[0,-1], [-1, 0]]
+    special_matrices_str = ["identity_2x2","clockwise90_2x2", "anticlockwise90_2x2", "rotate180_2x2"]
+    special_matrices = [identity_2x2, clockwise90_2x2, anticlockwise90_2x2, rotate180_2x2]
+    for i in range(len(special_matrices)):
+        if (special_matrices_str[i] == special_matrix):
+            return special_matrices[i]
+# find the height and width of a matrix
+def dimensions_finder():
+    dimensions = input('Enter the dimensions of the matrix as "HEIGHT x WIDTH" (with no spaces!): ')
+    length = len(dimensions)
+    for i in range(length):
+    # check for non digits, and if its not a digit, check if its x
+        if (not dimensions[i].isdigit() and dimensions[i].lower() != 'x'):
+            print("Invalid: '" + dimensions + "' is not the correct format, please try again")
+            return dimensions_finder()
+        elif (not dimensions[0].isdigit or not dimensions[length - 1].isdigit):
+            print("Missing Dimension(s)")
+            return dimensions_finder()
+    height = ""
+    width = ""
+    # loop through until x to find height
+    for i in range(len(dimensions)):
+        if dimensions[i] != "x":
+            height += dimensions[i]
+        else:
+            divider = i
+            break
+    # loop through from number after "x" until end to find width
+    for j in range(divider + 1, len(dimensions)):
+        width += dimensions[j]
+    return int(height), int(width)
+# ***Take in input of dimensions + decision to input or generate a matrix, then act accordingly***
+def generate(height, width):
+    # begin generation now that you have dimensions
+    gen_type = input("\nEnter 'manual' to manually create the matrix or 'generate' to have one generated for you: ").lower()
+    # repeat until proper input is given
+    if (gen_type != "manual" and gen_type != "generate"):
+        return generate(height, width)
+    matrix = []
+    if (gen_type == "manual"):
+        for i in range(height):
+            row = []
+            # make a list of row lists
+            for j in range(width):
+                row.append(int(input("Row " + str(i + 1) + ", Column " + str(j + 1) + ": ")))
+            matrix.append(row)
+    else:
+        for i in range(height):
+            row = []
+            # generate a random list of numbers
+            for j in range(width):
+                row.append(random.randint(0,9))
+            matrix.append(row)
+    return matrix
+# ***find the determinant of a 2x2 or a 3x3 matrix***
+def determinant(size):
+    matrix = generate(size, size)
+    if (len(matrix[0]) == 2 and len(matrix) == 2):
+        determinant = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+        print(determinant)
+        return determinant
+    elif (len(matrix[0]) == 3 and len(matrix) == 3):
+        determinant = matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) - matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]) + matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][1])
+        print(determinant)
+        return determinant
+    else:
+        print("Please only enter a 2x2 or a 3x3 square\n")
+        return operation_decision()
+# ***multiply 2 matrices***
+def multiply(matrix_A, matrix_B):
+    
+    rows_A = len(matrix_A)
+    cols_A = len(matrix_A[0])
+    rows_B = len(matrix_B)
+    cols_B = len(matrix_B[0])
+    # Check if multiplication is possible
+    if (cols_A != rows_B):
+        print("Error: Number of columns in A must equal number of rows in B")
+    else:
+        print("\n")
+        # Initialize the result matrix with zeros
+        result = [[0 for i in range(cols_B)] for i in range(rows_A)]
+
+        # Perform matrix multiplication using nested loops
+        for i in range(rows_A):          # Iterate through rows of A
+            for j in range(cols_B):      # Iterate through columns of B
+                for k in range(cols_A):  # Iterate through elements for the dot product
+                    result[i][j] += matrix_A[i][k] * matrix_B[k][j]
+        
+        if (rows_A >= rows_B):
+            for i in range(rows_B):
+                print(matrix_A[i], matrix_B[i], "->", result[i])
+                imbalance = i + 1
+            # repeat operation for the number of rows left to go
+            for i in range(rows_A - imbalance):
+                # print row and allign to print result row, then print reult row
+                print(matrix_A[imbalance + i], end="")
+                print(" " * (3 * cols_B + 1), "-> ", end="")
+                print(result[imbalance + i])
+        else:
+            # print the shared rows and the result
+            for i in range(rows_A):
+                print(matrix_A[i], matrix_B[i], "->", result[i])
+                imbalance = i + 1
+            # repeat operation for the number of rows left to go
+            for i in range(cols_A - imbalance):
+                # add the correct number of spaces to allign the extension of the second matrix
+                print(" " * (3 * cols_A + 1), end="")
+                print(matrix_B[imbalance + i])
+# ***main***
+def operation_decision():
+    operation_types = ["multiplication", "determinant", "2x2 manipulation"]
+    operation = input("\n\n\nWhat matrix operation would you like to perform?\n ---------------------------------------------- \nMultiplication, Determinant, or 2x2 manipulation:\n\n").lower()
+    if (operation == "multiplication"):
+        print("\n\nLength of the first matrix must be equal to the height of the second")
+        # create 2 matrices
+        for i in range(2):
+            # find height and width, then generate the matrix and add to global list
+            height, width = dimensions_finder()
+            matrix = generate(height, width)
+            matrices.append(matrix)
+            if (i == 0):
+                print("\n\nNext matrix must have height of " + str(width))
+        multiply(matrices[0], matrices[1])
+    elif (operation == "determinant"):
+        print("\nMatrix must be square, otherwise, the height unit will be used")
+        height, width = dimensions_finder()
+        # use the height to determine the size of the square matrix
+        determinant(height)
+    elif (operation == "2x2 manipulation"):
+        user_matrix = generate(2, 2)
+        manipulation = input("\n       What type of manipulation do you want?\n          ----------------------------------\nidentity_2x2, clockwise90_2x2, anticlockwise90_2x2, rotate180_2x2\n            ")
+        manipulation = special_matrices(manipulation)
+        multiply(user_matrix, manipulation)
+    else:
+        print("Please type operations exactly as they appear on screen\n")
+        return operation_decision()
+operation_decision()
+
+def transpose(matrix):
+    transposed = []
+    for i in range(len(matrix[0])):
+        new_row = []
+        for j in range(len(matrix)):
+            new_row.append(matrix[j][i])
+        transposed.append(new_row)
